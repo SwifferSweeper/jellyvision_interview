@@ -1,0 +1,9 @@
+# Core dependencies
+pandas>=2.0.0
+pyarrow>=15.0.0
+
+# Testing dependencies
+pytest>=7.4.0
+
+# Code quality
+ruff>=0.1.0
