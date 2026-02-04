@@ -44,7 +44,12 @@ services:
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
-      _PIP_ADDITIONAL_REQUIREMENTS: 'pandas pyarrow'
+      AIRFLOW__CELERY__WORKER_CONCURRENCY: 16
+      AIRFLOW__CELERY__WORKER_PREFETCH_MULTIPLIER: 1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
+      AWS_DEFAULT_REGION: us-east-1
+      _PIP_ADDITIONAL_REQUIREMENTS: 'pandas pyarrow boto3'
     volumes:
       - ./dags:/opt/airflow/dags
       - ./etl_pipeline.py:/opt/airflow/etl_pipeline.py
@@ -77,7 +82,12 @@ services:
       AIRFLOW__CORE__FERNET_KEY: ''
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      _PIP_ADDITIONAL_REQUIREMENTS: 'pandas pyarrow'
+      AIRFLOW__CELERY__WORKER_CONCURRENCY: 16
+      AIRFLOW__CELERY__WORKER_PREFETCH_MULTIPLIER: 1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
+      AWS_DEFAULT_REGION: us-east-1
+      _PIP_ADDITIONAL_REQUIREMENTS: 'pandas pyarrow boto3'
     volumes:
       - ./dags:/opt/airflow/dags
       - ./etl_pipeline.py:/opt/airflow/etl_pipeline.py
@@ -108,7 +118,12 @@ services:
       AIRFLOW__CORE__FERNET_KEY: ''
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-      _PIP_ADDITIONAL_REQUIREMENTS: 'pandas pyarrow'
+      AIRFLOW__CELERY__WORKER_CONCURRENCY: 16
+      AIRFLOW__CELERY__WORKER_PREFETCH_MULTIPLIER: 1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
+      AWS_DEFAULT_REGION: us-east-1
+      _PIP_ADDITIONAL_REQUIREMENTS: 'pandas pyarrow boto3'
     volumes:
       - ./dags:/opt/airflow/dags
       - ./etl_pipeline.py:/opt/airflow/etl_pipeline.py
@@ -129,5 +144,38 @@ services:
       postgres:
         condition: service_healthy
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    restart: always
+
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - rustfs-data:/data
+    networks:
+      - airflow_default
+    restart: always
+
 volumes:
   postgres-db-volume:
+  rustfs-data:
+  minio-data:

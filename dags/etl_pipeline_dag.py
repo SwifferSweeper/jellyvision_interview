@@ -27,9 +27,9 @@ START_DATE = datetime(2024, 1, 1)
 RETENTION_DAYS = 30
 
 # S3 Configuration
-S3_BUCKET = "{{ var.value.get('s3_bucket', 'etl-outputs') }}"
+S3_BUCKET = "etl-outputs"
 S3_PREFIX = "{{ ds }}"
-S3_ENDPOINT_URL = "{{ var.value.get('s3_endpoint_url', None) }}"  # For MinIO/S3-compatible storage
+S3_ENDPOINT_URL = "http://rustfs:9000"  # Local RustFS for S3-compatible storage
 
 # Default arguments for all tasks
 default_args = {
@@ -111,9 +111,10 @@ def upload_to_s3(**context):
     s3_prefix = context.get("ds", S3_PREFIX)  # Use execution date as prefix
     s3_endpoint = Variable.get("s3_endpoint_url", default_var=S3_ENDPOINT_URL)
     
-    # Get AWS credentials from Airflow Connections or Variables
-    aws_access_key = Variable.get("aws_access_key_id", default_var=None)
-    aws_secret_key = Variable.get("aws_secret_access_key", default_var=None)
+    # Get AWS credentials from environment or Variables
+    import os
+    aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID") or Variable.get("aws_access_key_id", default_var=None)
+    aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or Variable.get("aws_secret_access_key", default_var=None)
     
     uploader = S3Uploader(
         s3_bucket=s3_bucket,
