@@ -1,13 +1,18 @@
 # Benefits Engagement ETL Pipeline
 
-A simple local ETL pipeline that processes mock benefits engagement data, outputting clean results as Parquet files with Snappy compression.
+A simple local ETL pipeline that processes mock benefits engagement data, outputting clean results as Parquet files using pyarrow.
 
-## Overview
+## Architecture
 
-This pipeline:
-1. **Extracts** data from `raw_events.json` and `users.csv`
-2. **Transforms** the data through cleaning, deduplication, joining, and filtering
-3. **Loads** cleaned data to Parquet files
+The pipeline uses pyarrow for efficient Parquet I/O and is organized into classes:
+
+| Class | Responsibility | Pyarrow Usage |
+|-------|---------------|---------------|
+| [`DataLoader`](etl_pipeline.py:31) | Extraction from JSON and CSV | Reads JSON via `pa.Table.from_pylist()` |
+| [`DataCleaner`](etl_pipeline.py:68) | Cleaning operations | Pandas for data manipulation |
+| [`DataTransformer`](etl_pipeline.py:156) | Join, filter, aggregate | Pandas for transformations |
+| [`DataWriter`](etl_pipeline.py:231) | Write to Parquet | `pq.write_table()` with Snappy |
+| [`ETLPipeline`](etl_pipeline.py:275) | Orchestrates ETL | Coordinates all components |
 
 ## Input Files
 
@@ -22,6 +27,8 @@ This pipeline:
 |------|-------------|
 | `output/clean_events.parquet` | Cleaned, joined, and filtered events (US users only) |
 | `output/daily_summary.parquet` | Daily event counts per user |
+
+Both use **Snappy compression** via pyarrow.
 
 ## Data Cleaning Steps
 
@@ -75,26 +82,32 @@ python etl_pipeline.py
 
 ## Logging
 
-The pipeline logs:
-- Row counts at each stage
-- Dropped row counts and reasons
-- Deduplication statistics
-- Final output summary
+The pipeline logs detailed information about row counts, dropped rows, and processing steps.
 
-Example output:
+## PyArrow Features Used
+
+- **Reading JSON**: `pa.Table.from_pylist()` to efficiently parse JSON arrays
+- **Writing Parquet**: `pq.write_table()` with:
+  - Snappy compression
+  - Dictionary encoding (`use_dictionary=True`)
+  - Timestamp coercion to microseconds
+
+## Usage as a Library
+
+```python
+from pathlib import Path
+from etl_pipeline import ETLPipeline
+
+# Define paths
+events_path = Path('raw_events.json')
+users_path = Path('users.csv')
+output_dir = Path('output')
+
+# Create and run pipeline
+pipeline = ETLPipeline(events_path, users_path, output_dir)
+stats = pipeline.run()
+
+# Access results
+print(f"Clean events: {len(pipeline.clean_events_df)}")
+print(f"Daily summary: {len(pipeline.daily_summary_df)}")
 ```
-2025-02-04 22:03:12,123 - INFO - Loaded 8934 events
-2025-02-04 22:03:12,456 - INFO - Loaded 1000 users
-2025-02-04 22:03:12,789 - INFO - Cleaned events: 8934 -> 8920 (dropped 14 rows)
-2025-02-04 22:03:12,012 - INFO - Deduplication: 8920 -> 8750 (removed 170 duplicates)
-...
-2025-02-04 22:03:13,345 - INFO - DROPPED ROW SUMMARY:
-...
-```
-
-## Compression
-
-Both output files use **Snappy compression**, which provides:
-- Fast compression/decompression speeds
-- Good compression ratios
-- Native support in pandas/pyarrow
