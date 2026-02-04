@@ -1,6 +1,7 @@
 # ETL Pipeline Dependencies
 pandas>=2.0.0
 pyarrow>=12.0.0
+boto3>=1.26.0
 
 # Airflow Dependencies
 apache-airflow>=2.7.0
