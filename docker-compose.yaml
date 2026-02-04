@@ -31,7 +31,10 @@ services:
     restart: always
 
   airflow-webserver:
-    image: apache/airflow:2.7.3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: airflow-custom
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -65,7 +68,7 @@ services:
         condition: service_healthy
 
   airflow-scheduler:
-    image: apache/airflow:2.7.3
+    image: airflow-custom
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
@@ -96,7 +99,7 @@ services:
         condition: service_healthy
 
   airflow-worker:
-    image: apache/airflow:2.7.3
+    image: airflow-custom
     environment:
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
