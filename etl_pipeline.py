@@ -303,6 +303,90 @@ class DataWriter:
         return self.write_parquet(df, "daily_summary.parquet")
 
 
+class S3Uploader:
+    """Handles uploading files to S3-compatible storage."""
+
+    def __init__(
+        self,
+        s3_bucket: str,
+        s3_prefix: str = "",
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        endpoint_url: str | None = None,
+    ):
+        """
+        Initialize S3 uploader.
+
+        Args:
+            s3_bucket: S3 bucket name
+            s3_prefix: Prefix/path in the bucket for uploaded files
+            aws_access_key_id: AWS access key ID (optional, uses env var if not provided)
+            aws_secret_access_key: AWS secret access key (optional, uses env var if not provided)
+            endpoint_url: Custom S3 endpoint URL (for MinIO/other S3-compatible storage)
+        """
+        import boto3
+
+        self.s3_bucket = s3_bucket
+        self.s3_prefix = s3_prefix.rstrip("/")
+
+        # Create S3 client
+        self.s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            endpoint_url=endpoint_url,
+        )
+
+    def upload_file(self, local_path: Path, s3_key: str | None = None) -> str:
+        """
+        Upload a local file to S3.
+
+        Args:
+            local_path: Path to local file to upload
+            s3_key: S3 key (path in bucket). If None, uses filename with prefix.
+
+        Returns:
+            str: S3 URI of uploaded file
+        """
+        if s3_key is None:
+            s3_key = f"{self.s3_prefix}/{local_path.name}"
+
+        logger.info(f"Uploading {local_path} to s3://{self.s3_bucket}/{s3_key}")
+
+        self.s3_client.upload_file(str(local_path), self.s3_bucket, s3_key)
+
+        s3_uri = f"s3://{self.s3_bucket}/{s3_key}"
+        logger.info(f"Successfully uploaded to {s3_uri}")
+        return s3_uri
+
+    def upload_parquet_files(
+        self, output_dir: Path, files: list[str] | None = None
+    ) -> dict[str, str]:
+        """
+        Upload Parquet files to S3.
+
+        Args:
+            output_dir: Directory containing Parquet files
+            files: List of filenames to upload. If None, uploads all .parquet files.
+
+        Returns:
+            dict: Mapping of filename to S3 URI
+        """
+        if files is None:
+            files = ["clean_events.parquet", "daily_summary.parquet"]
+
+        results = {}
+        for filename in files:
+            local_path = output_dir / filename
+            if local_path.exists():
+                s3_uri = self.upload_file(local_path)
+                results[filename] = s3_uri
+            else:
+                logger.warning(f"File not found: {local_path}")
+
+        return results
+
+
 class ETLPipeline:
     """Orchestrates the entire ETL process."""
 
