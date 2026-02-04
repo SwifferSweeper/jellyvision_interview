@@ -171,8 +171,6 @@ services:
       - "9001:9001"
     volumes:
       - rustfs-data:/data
-    networks:
-      - airflow_default
     restart: always
 
 volumes:
