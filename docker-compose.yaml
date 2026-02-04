@@ -168,7 +168,7 @@ services:
     container_name: rustfs
     ports:
       - "9000:9000"
-      - "9001:9001"
+      - "9002:9001"
     volumes:
       - rustfs-data:/data
     restart: always
