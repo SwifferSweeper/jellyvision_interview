@@ -48,12 +48,6 @@ class DataLoader:
         Returns:
             pd.DataFrame: Events data with columns (user_id, event_type, timestamp, value, metadata)
         """
-        """
-        Load events from JSON file using pyarrow for parsing.
-        
-        Returns:
-            DataFrame with events data
-        """
         logger.info(f"Loading events from {self.events_path}")
 
         # Read JSON file
@@ -71,12 +65,6 @@ class DataLoader:
 
         Returns:
             pd.DataFrame: Users data with columns (user_id, signup_date, country)
-        """
-        """
-        Load users from CSV file.
-        
-        Returns:
-            DataFrame with users data
         """
         logger.info(f"Loading users from {self.users_path}")
 
