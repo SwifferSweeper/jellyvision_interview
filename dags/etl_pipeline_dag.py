@@ -97,7 +97,11 @@ def validate_outputs(**context):
         print(f"ETL Pipeline completed successfully:")
         print(f"  - Clean events: {stats.get('clean_events_count', 'N/A')} rows")
         print(f"  - Daily summary: {stats.get('daily_summary_count', 'N/A')} rows")
-        print(f"  - Total dropped: {stats.get('dropped_cleaning', 0) + stats.get('dropped_dedup', 0) + stats.get('dropped_us_filter', 0)} rows")
+        dropped_cleaning = stats.get('dropped_cleaning', {})
+        if isinstance(dropped_cleaning, dict):
+            dropped_cleaning = sum(dropped_cleaning.values())
+        total_dropped = dropped_cleaning + stats.get('dropped_dedup', 0) + stats.get('dropped_us_filter', 0)
+        print(f"  - Total dropped: {total_dropped} rows")
 
 
 def upload_to_s3(**context):
