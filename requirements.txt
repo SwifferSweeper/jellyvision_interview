@@ -9,3 +9,6 @@ apache-airflow>=2.7.0
 # Development & Testing
 pytest>=7.0.0
 pytest-cov>=4.0.0
+
+# Code quality
+ruff>=0.1.0
