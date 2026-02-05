@@ -29,7 +29,7 @@ RETENTION_DAYS = 30
 # S3 Configuration
 S3_BUCKET = "etl-outputs"
 S3_PREFIX = "{{ ds }}"
-S3_ENDPOINT_URL = "http://rustfs:9000"  # Local RustFS for S3-compatible storage
+S3_ENDPOINT_URL = "http://minio:9000"  # Local MinIO for S3-compatible storage
 
 # Default arguments for all tasks
 default_args = {
@@ -103,6 +103,7 @@ def validate_outputs(**context):
 def upload_to_s3(**context):
     """Upload Parquet files to S3."""
     from airflow.models import Variable
+    import os
     
     paths = get_base_paths()
     
@@ -112,7 +113,6 @@ def upload_to_s3(**context):
     s3_endpoint = Variable.get("s3_endpoint_url", default_var=S3_ENDPOINT_URL)
     
     # Get AWS credentials from environment or Variables
-    import os
     aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID") or Variable.get("aws_access_key_id", default_var=None)
     aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or Variable.get("aws_secret_access_key", default_var=None)
     
