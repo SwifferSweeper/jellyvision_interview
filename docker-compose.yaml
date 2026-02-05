@@ -71,12 +71,13 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__FERNET_KEY: 'zTvhk3YUqzCcFdP0t0vGPAsp1978aI0yHNlLxA4Xr8E='
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth'
       AIRFLOW__CELERY__WORKER_CONCURRENCY: 16
       AIRFLOW__CELERY__WORKER_PREFETCH_MULTIPLIER: 1
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_super_secret_key
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: admin123
       AWS_DEFAULT_REGION: us-east-1
@@ -113,11 +114,12 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__FERNET_KEY: 'zTvhk3YUqzCcFdP0t0vGPAsp1978aI0yHNlLxA4Xr8E='
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__CELERY__WORKER_CONCURRENCY: 16
       AIRFLOW__CELERY__WORKER_PREFETCH_MULTIPLIER: 1
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_super_secret_key
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: admin123
       AWS_DEFAULT_REGION: us-east-1
@@ -152,11 +154,12 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
-      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__FERNET_KEY: 'zTvhk3YUqzCcFdP0t0vGPAsp1978aI0yHNlLxA4Xr8E='
       AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
       AIRFLOW__CELERY__WORKER_CONCURRENCY: 16
       AIRFLOW__CELERY__WORKER_PREFETCH_MULTIPLIER: 1
+      AIRFLOW__WEBSERVER__SECRET_KEY: my_super_secret_key
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: admin123
       AWS_DEFAULT_REGION: us-east-1
