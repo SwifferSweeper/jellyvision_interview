@@ -77,12 +77,12 @@ jobs:
           if [ -f "output/clean_events.parquet" ] && [ -f "output/daily_summary.parquet" ]; then
             echo "ETL outputs created successfully"
             python -c "
-            import pyarrow.parquet as pq
-            clean = pq.read_table('output/clean_events.parquet')
-            summary = pq.read_table('output/daily_summary.parquet')
-            print(f'Clean events: {len(clean)} rows')
-            print(f'Daily summary: {len(summary)} rows')
-            "
+import pyarrow.parquet as pq
+clean = pq.read_table('output/clean_events.parquet')
+summary = pq.read_table('output/daily_summary.parquet')
+print(f'Clean events: {len(clean)} rows')
+print(f'Daily summary: {len(summary)} rows')
+"
           else
             echo "ERROR: ETL outputs not found"
             exit 1
