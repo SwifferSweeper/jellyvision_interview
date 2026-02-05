@@ -20,7 +20,6 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 import pandas as pd
-import boto3
 
 # Configure logging
 logging.basicConfig(
@@ -313,6 +312,7 @@ class S3Uploader:
             aws_secret_access_key: AWS secret access key (optional, uses env var if not provided)
             endpoint_url: Custom S3 endpoint URL (for MinIO/other S3-compatible storage)
         """
+        import boto3
 
         self.s3_bucket = s3_bucket
         self.s3_prefix = s3_prefix.rstrip("/")
