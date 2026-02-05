@@ -68,21 +68,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run ETL Pipeline
+      - name: Set up secrets
         run: |
-          python etl_pipeline.py
+          echo "AIRFLOW__CORE__FERNET_KEY=${{ secrets.AIRFLOW_CORE_FERNET_KEY }}" >> $GITHUB_ENV
+          echo "AIRFLOW__WEBSERVER__SECRET_KEY=${{ secrets.AIRFLOW_WEBSERVER_SECRET_KEY }}" >> $GITHUB_ENV
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
+
+      - name: Run ETL Pipeline
+        run: python etl_pipeline.py
 
       - name: Verify outputs
         run: |
           if [ -f "output/clean_events.parquet" ] && [ -f "output/daily_summary.parquet" ]; then
             echo "ETL outputs created successfully"
-            python -c "
-import pyarrow.parquet as pq
-clean = pq.read_table('output/clean_events.parquet')
-summary = pq.read_table('output/daily_summary.parquet')
-print(f'Clean events: {len(clean)} rows')
-print(f'Daily summary: {len(summary)} rows')
-"
+            python verify_outputs.py
           else
             echo "ERROR: ETL outputs not found"
             exit 1
@@ -102,6 +102,4 @@ print(f'Daily summary: {len(summary)} rows')
     steps:
       - name: Send notification on failure
         if: failure()
-        run: |
-          echo "ETL Pipeline workflow failed!"
-          # Add your notification logic here (Slack, email, etc.)
+        run: echo "ETL Pipeline workflow failed!"
