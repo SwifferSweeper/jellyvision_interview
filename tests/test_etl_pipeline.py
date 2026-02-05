@@ -1,11 +1,8 @@
 """Unit tests for ETL pipeline classes."""
 
-import json
-
 import pandas as pd
-import pytest
 
-from etl_pipeline import DataLoader, DataCleaner, DataTransformer, DataWriter
+from etl_pipeline import DataLoader
 
 
 class TestDataLoader:
@@ -56,7 +53,11 @@ class TestDataCleaner:
             {
                 "user_id": ["user_1", None, "user_2"],
                 "event_type": ["login", "login", "view"],
-                "timestamp": ["2024-01-15T08:00:00", "2024-01-15T09:00:00", "2024-01-15T10:00:00"],
+                "timestamp": [
+                    "2024-01-15T08:00:00",
+                    "2024-01-15T09:00:00",
+                    "2024-01-15T10:00:00",
+                ],
                 "value": [1, 2, 3],
                 "metadata": [{}, {}, {}],
             }
@@ -117,7 +118,11 @@ class TestDataCleaner:
             {
                 "user_id": ["user_1", "user_1", "user_2"],
                 "event_type": ["login", "login", "view"],
-                "timestamp": ["2024-01-15T08:00:00", "2024-01-15T08:00:00", "2024-01-15T09:00:00"],
+                "timestamp": [
+                    "2024-01-15T08:00:00",
+                    "2024-01-15T08:00:00",
+                    "2024-01-15T09:00:00",
+                ],
                 "value": [1, 1, 2],
                 "metadata": [{}, {}, {}],
             }
@@ -134,7 +139,10 @@ class TestDataCleaner:
                 "event_type": ["login", "view"],
                 "timestamp": ["2024-01-15T08:00:00", "2024-01-15T09:00:00"],
                 "value": [1, 2],
-                "metadata": [{"device": "mobile", "page": "home"}, {"device": "desktop", "page": "product"}],
+                "metadata": [
+                    {"device": "mobile", "page": "home"},
+                    {"device": "desktop", "page": "product"},
+                ],
             }
         )
         flattened_df = cleaner.flatten_metadata(events_df)
@@ -245,9 +253,13 @@ class TestDataWriter:
         assert filepath.exists()
         assert filepath.suffix == ".parquet"
 
-    def test_write_parquet_with_gzip_compression(self, writer, sample_clean_events_df, output_dir):
+    def test_write_parquet_with_gzip_compression(
+        self, writer, sample_clean_events_df, output_dir
+    ):
         """Test writing Parquet with gzip compression."""
-        filepath = writer.write_parquet(sample_clean_events_df, "test_events_gzip.parquet", compression="gzip")
+        filepath = writer.write_parquet(
+            sample_clean_events_df, "test_events_gzip.parquet", compression="gzip"
+        )
         assert filepath.exists()
 
     def test_write_clean_events(self, writer, sample_clean_events_df, output_dir):
@@ -261,7 +273,10 @@ class TestDataWriter:
         summary_df = pd.DataFrame(
             {
                 "user_id": ["user_1", "user_2"],
-                "event_date": [pd.Timestamp("2024-01-15").date(), pd.Timestamp("2024-01-15").date()],
+                "event_date": [
+                    pd.Timestamp("2024-01-15").date(),
+                    pd.Timestamp("2024-01-15").date(),
+                ],
                 "event_count": [5, 3],
             }
         )
@@ -294,7 +309,9 @@ class TestETLPipeline:
         assert "clean_events_count" in stats
         assert "daily_summary_count" in stats
 
-    def test_pipeline_creates_output_files(self, events_json_path, users_csv_path, tmp_path):
+    def test_pipeline_creates_output_files(
+        self, events_json_path, users_csv_path, tmp_path
+    ):
         """Test that pipeline creates expected output files."""
         from etl_pipeline import ETLPipeline
 
@@ -318,7 +335,9 @@ class TestETLPipeline:
         # Check no invalid timestamps
         assert pipeline.clean_events_df["timestamp_dt"].notna().all()
 
-    def test_pipeline_filters_us_users(self, events_json_path, users_csv_path, tmp_path):
+    def test_pipeline_filters_us_users(
+        self, events_json_path, users_csv_path, tmp_path
+    ):
         """Test that pipeline filters to US users only."""
         from etl_pipeline import ETLPipeline
 
@@ -329,7 +348,9 @@ class TestETLPipeline:
         # All clean events should be from US users
         assert (pipeline.clean_events_df["country"] == "US").all()
 
-    def test_pipeline_metadata_flattened(self, events_json_path, users_csv_path, tmp_path):
+    def test_pipeline_metadata_flattened(
+        self, events_json_path, users_csv_path, tmp_path
+    ):
         """Test that pipeline flattens metadata into device and page."""
         from etl_pipeline import ETLPipeline
 

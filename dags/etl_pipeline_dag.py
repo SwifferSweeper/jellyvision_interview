@@ -16,6 +16,7 @@ from airflow.operators.empty import EmptyOperator
 
 # Import the ETL pipeline
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from etl_pipeline import ETLPipeline, S3Uploader
 
@@ -58,18 +59,18 @@ def get_base_paths():
 def run_etl_pipeline(**context):
     """Execute the ETL pipeline and return statistics."""
     paths = get_base_paths()
-    
+
     pipeline = ETLPipeline(
         events_path=paths["events_path"],
         users_path=paths["users_path"],
         output_dir=paths["output_dir"],
     )
-    
+
     stats = pipeline.run()
-    
+
     # Push stats to XCom for reporting
     context["ti"].xcom_push(key="etl_stats", value=stats)
-    
+
     return stats
 
 
@@ -78,29 +79,33 @@ def validate_outputs(**context):
     paths = get_base_paths()
     clean_events_path = paths["output_dir"] / "clean_events.parquet"
     daily_summary_path = paths["output_dir"] / "daily_summary.parquet"
-    
+
     errors = []
-    
+
     if not clean_events_path.exists():
         errors.append(f"Missing output file: {clean_events_path}")
-    
+
     if not daily_summary_path.exists():
         errors.append(f"Missing output file: {daily_summary_path}")
-    
+
     if errors:
         raise FileNotFoundError("\n".join(errors))
-    
+
     # Get stats from previous task
     stats = context["ti"].xcom_pull(key="etl_stats")
-    
+
     if stats:
-        print(f"ETL Pipeline completed successfully:")
+        print("ETL Pipeline completed successfully:")
         print(f"  - Clean events: {stats.get('clean_events_count', 'N/A')} rows")
         print(f"  - Daily summary: {stats.get('daily_summary_count', 'N/A')} rows")
-        dropped_cleaning = stats.get('dropped_cleaning', {})
+        dropped_cleaning = stats.get("dropped_cleaning", {})
         if isinstance(dropped_cleaning, dict):
             dropped_cleaning = sum(dropped_cleaning.values())
-        total_dropped = dropped_cleaning + stats.get('dropped_dedup', 0) + stats.get('dropped_us_filter', 0)
+        total_dropped = (
+            dropped_cleaning
+            + stats.get("dropped_dedup", 0)
+            + stats.get("dropped_us_filter", 0)
+        )
         print(f"  - Total dropped: {total_dropped} rows")
 
 
@@ -108,18 +113,22 @@ def upload_to_s3(**context):
     """Upload Parquet files to S3."""
     from airflow.models import Variable
     import os
-    
+
     paths = get_base_paths()
-    
+
     # Get S3 configuration from Airflow Variables or use defaults
     s3_bucket = Variable.get("s3_bucket", default_var=S3_BUCKET)
     s3_prefix = context.get("ds", S3_PREFIX)  # Use execution date as prefix
     s3_endpoint = Variable.get("s3_endpoint_url", default_var=S3_ENDPOINT_URL)
-    
+
     # Get AWS credentials from environment or Variables
-    aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID") or Variable.get("aws_access_key_id", default_var=None)
-    aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or Variable.get("aws_secret_access_key", default_var=None)
-    
+    aws_access_key = os.environ.get("AWS_ACCESS_KEY_ID") or Variable.get(
+        "aws_access_key_id", default_var=None
+    )
+    aws_secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or Variable.get(
+        "aws_secret_access_key", default_var=None
+    )
+
     uploader = S3Uploader(
         s3_bucket=s3_bucket,
         s3_prefix=s3_prefix,
@@ -127,17 +136,17 @@ def upload_to_s3(**context):
         aws_secret_access_key=aws_secret_key,
         endpoint_url=s3_endpoint,
     )
-    
+
     # Upload Parquet files
     results = uploader.upload_parquet_files(paths["output_dir"])
-    
+
     print("Files uploaded to S3:")
     for filename, s3_uri in results.items():
         print(f"  - {filename}: {s3_uri}")
-    
+
     # Push S3 URIs to XCom
     context["ti"].xcom_push(key="s3_uploads", value=results)
-    
+
     return results
 
 
@@ -152,7 +161,6 @@ with DAG(
     max_active_runs=1,
     tags=["etl", "pipeline", "benefits"],
 ) as dag:
-
     # Task definitions
     start = EmptyOperator(task_id="start")
 

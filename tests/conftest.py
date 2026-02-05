@@ -1,8 +1,6 @@
 """Pytest fixtures for ETL pipeline tests."""
 
 import json
-import tempfile
-from pathlib import Path
 
 import pandas as pd
 import pytest
