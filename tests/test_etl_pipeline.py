@@ -216,7 +216,7 @@ class TestDataTransformer:
                 "country": ["US"],
             }
         )
-        merged_df = transformer.join_with_users(events_df, users_df)
+        transformer.join_with_users(events_df, users_df)
         assert transformer.stats["join_unmatched"] == 1
 
     def test_filter_us_users(self, transformer):
